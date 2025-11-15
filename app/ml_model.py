@@ -57,6 +57,7 @@ class InvoiceDataExtractor:
         }
         
         self.is_trained = False
+        self.retrain_count = 0
         self.model_version = "1.0"
         self.training_date = None
     
@@ -201,9 +202,14 @@ class InvoiceDataExtractor:
         self.is_trained = True
         self.training_date = datetime.now().isoformat()
         
+        # Обновляем версию модели при каждом обучении
+        self.retrain_count += 1
+        self.model_version = f"1.{self.retrain_count}"
+        
         print(f"\n{'='*60}")
         print(f"ОБУЧЕНИЕ ЗАВЕРШЕНО!")
         print(f"{'='*60}")
+        print(f"Версия модели: {self.model_version}")
         print(f"Финальная точность: {self.training_history['accuracy'][-1]:.2f}%")
         print(f"Финальный loss: {self.training_history['loss'][-1]:.4f}")
         print(f"{'='*60}\n")
@@ -240,6 +246,7 @@ class InvoiceDataExtractor:
             'pattern_weights': self.pattern_weights,
             'training_history': self.training_history,
             'is_trained': self.is_trained,
+            'retrain_count': self.retrain_count,
             'model_version': self.model_version,
             'training_date': self.training_date
         }
@@ -262,6 +269,7 @@ class InvoiceDataExtractor:
         model.pattern_weights = model_data['pattern_weights']
         model.training_history = model_data['training_history']
         model.is_trained = model_data['is_trained']
+        model.retrain_count = model_data.get('retrain_count', 0)
         model.model_version = model_data.get('model_version', '1.0')
         model.training_date = model_data.get('training_date')
         
@@ -277,6 +285,7 @@ class InvoiceDataExtractor:
         return {
             'is_trained': self.is_trained,
             'model_version': self.model_version,
+            'retrain_count': self.retrain_count,
             'training_date': self.training_date,
             'epochs': len(self.training_history['loss']),
             'final_accuracy': self.training_history['accuracy'][-1] if self.training_history['accuracy'] else 0,

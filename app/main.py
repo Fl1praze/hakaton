@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from typing import Dict, Any
+from typing import Dict, Any, List
 from app import processor
 import logging
 
@@ -37,6 +37,7 @@ def read_root():
         "version": "1.0.0",
         "endpoints": {
             "process_pdf": "/api/process_pdf/",
+            "process_batch": "/api/process-batch/",
             "documentation": "/docs",
             "health": "/health"
         }
@@ -126,6 +127,97 @@ async def process_pdf(file: UploadFile = File(...)) -> Dict[str, Any]:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Внутренняя ошибка сервера. Попробуйте позже"
         )
+
+
+@app.post("/api/process-batch/", tags=["PDF Processing"], status_code=status.HTTP_200_OK)
+async def process_pdf_batch(files: List[UploadFile] = File(...)) -> Dict[str, Any]:
+    """
+    Принимает несколько PDF-файлов, обрабатывает их и возвращает результаты для каждого.
+    
+    Возвращает:
+    - total: общее количество файлов
+    - successful: количество успешно обработанных
+    - failed: количество файлов с ошибками
+    - results: список результатов для каждого файла
+    """
+    logger.info(f"Получено {len(files)} файлов для batch обработки")
+    
+    results = []
+    successful = 0
+    failed = 0
+    
+    for file in files:
+        try:
+            # Проверка типа файла
+            if not file.filename.lower().endswith('.pdf'):
+                results.append({
+                    "filename": file.filename,
+                    "status": "error",
+                    "error": "Неверный формат файла. Требуется PDF"
+                })
+                failed += 1
+                continue
+            
+            # Читаем файл
+            pdf_bytes = await file.read()
+            
+            # Проверка размера
+            if len(pdf_bytes) == 0:
+                results.append({
+                    "filename": file.filename,
+                    "status": "error",
+                    "error": "Файл пуст"
+                })
+                failed += 1
+                continue
+            
+            if len(pdf_bytes) > 10 * 1024 * 1024:  # 10 MB лимит
+                results.append({
+                    "filename": file.filename,
+                    "status": "error",
+                    "error": "Размер файла превышает 10 МБ"
+                })
+                failed += 1
+                continue
+            
+            logger.info(f"Обработка файла: {file.filename}, размер: {len(pdf_bytes)} байт")
+            
+            # Обработка
+            extracted_data = processor.extract_invoice_data(pdf_bytes)
+            
+            if "error" in extracted_data:
+                results.append({
+                    "filename": file.filename,
+                    "status": "error",
+                    "error": extracted_data.get("error", "Неизвестная ошибка")
+                })
+                failed += 1
+            else:
+                results.append({
+                    "filename": file.filename,
+                    "status": "success",
+                    "data": extracted_data
+                })
+                successful += 1
+                
+        except Exception as e:
+            logger.error(f"Ошибка при обработке {file.filename}: {str(e)}")
+            results.append({
+                "filename": file.filename,
+                "status": "error",
+                "error": str(e)
+            })
+            failed += 1
+    
+    logger.info(f"Batch обработка завершена: {successful} успешно, {failed} с ошибками")
+    
+    return {
+        "status": "completed",
+        "total": len(files),
+        "successful": successful,
+        "failed": failed,
+        "results": results
+    }
 
 
 # Обработчик глобальных исключений

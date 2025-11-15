@@ -111,6 +111,44 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 }
 ```
 
+#### `POST /api/process-batch/`
+Обработка нескольких PDF файлов одновременно (batch processing)
+
+**Параметры:**
+- `files` (multipart/form-data): Массив PDF файлов
+
+**Успешный ответ (200):**
+```json
+{
+  "status": "completed",
+  "total": 3,
+  "successful": 2,
+  "failed": 1,
+  "results": [
+    {
+      "filename": "invoice1.pdf",
+      "status": "success",
+      "data": {
+        "inn": "7707083893",
+        "vendor": "ООО МАГАЗИН",
+        "date": "2024-11-15",
+        "total": "1234.56"
+      }
+    },
+    {
+      "filename": "invoice2.pdf",
+      "status": "error",
+      "error": "Не удалось извлечь текст из PDF"
+    }
+  ]
+}
+```
+
+**Особенности:**
+- Обрабатывает все файлы, даже если часть из них вызвала ошибки
+- Возвращает статус для каждого файла отдельно
+- Быстрее при загрузке нескольких файлов, чем несколько отдельных запросов
+
 ### Swagger UI
 Интерактивная документация: `http://localhost:8000/docs`
 
@@ -288,21 +326,48 @@ python demo_pipeline.py
 # Проверка здоровья
 curl http://localhost:8000/health
 
-# Обработка PDF файла
+# Обработка 1 PDF файла
 curl -X POST "http://localhost:8000/api/process_pdf/" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@path/to/your/receipt.pdf"
+
+# Batch обработка нескольких файлов
+curl -X POST "http://localhost:8000/api/process-batch/" \
+  -F "files=@invoice1.pdf" \
+  -F "files=@invoice2.pdf" \
+  -F "files=@invoice3.pdf"
 ```
 
 ### Тестирование через Python
 
+**Один файл:**
+```bash
+python test_batch_api.py single invoice.pdf
+```
+
+**Несколько файлов (batch):**
+```bash
+python test_batch_api.py invoice1.pdf invoice2.pdf invoice3.pdf
+```
+
+**Или через код:**
 ```python
 import requests
 
+# Один файл
 url = "http://localhost:8000/api/process_pdf/"
 files = {'file': open('receipt.pdf', 'rb')}
-
 response = requests.post(url, files=files)
+print(response.json())
+
+# Batch обработка
+url_batch = "http://localhost:8000/api/process-batch/"
+files = [
+    ('files', open('invoice1.pdf', 'rb')),
+    ('files', open('invoice2.pdf', 'rb')),
+    ('files', open('invoice3.pdf', 'rb'))
+]
+response = requests.post(url_batch, files=files)
 print(response.json())
 ```
 
@@ -313,19 +378,26 @@ print(response.json())
 ```
 hakaton/
 ├── app/
-│   ├── main.py              # FastAPI приложение
-│   ├── processor.py         # Логика обработки PDF
-│   ├── demo_pipeline.py     # Демонстрация работы
-│   ├── train_model.py       # Скрипт обучения NER модели
-│   ├── models/              # Обученные модели (если есть)
-│   └── notebooks/           # Jupyter notebooks и тестовые PDF
-│       ├── model_training.ipynb
-│       └── *.pdf            # Тестовые чеки
-├── bot/                     # Папка для Go бота (ваш друг)
-├── Dockerfile               # Docker образ
-├── docker-compose.yml       # Оркестрация контейнеров
-├── requirements.txt         # Python зависимости
-└── README.md               # Этот файл
+│   ├── main.py                      # FastAPI приложение
+│   ├── processor.py                 # Логика обработки PDF
+│   ├── ml_model.py                  # ML модель (гибридный подход)
+│   ├── train_and_save_model.py      # Скрипт обучения модели
+│   ├── auto_extract_training_data.py # Автоматическое извлечение данных из PDF
+│   ├── training_data.json           # Датасет для обучения
+│   ├── models/                      # Обученные модели
+│   │   └── invoice_extractor.pkl    # Сохранённая модель
+│   ├── pdf_for_study/               # PDF файлы для обучения
+│   └── notebooks/                   # Jupyter notebooks для демо
+│       ├── demo_model.ipynb         # Демонстрация модели
+│       └── training_model.ipynb     # Процесс обучения
+├── bot/                             # Go бот
+│   └── README.md                    # Инструкции для бота
+├── Dockerfile                       # Docker образ
+├── docker-compose.yml               # Оркестрация контейнеров
+├── requirements.txt                 # Python зависимости
+├── test_batch_api.py                # Скрипт для тестирования batch API
+├── BOT_API_GUIDE.md                 # Полная документация для Go бота
+└── README.md                        # Этот файл
 ```
 
 ---
