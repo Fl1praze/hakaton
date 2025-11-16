@@ -59,13 +59,7 @@ app/models/few_shot_classifier/model.pt
 *.pid
 
 # Test files
-*.pdf
-
-# Except training PDFs (but they're also ignored below)
-!app/pdf_for_study/.gitkeep
-
-# Training PDFs (не коммитим в Git - могут содержать личные данные)
-app/pdf_for_study/*.pdf
+# (общие *.pdf не игнорируем, нужны для примеров)
 
 # Temporary files
 tmp/
