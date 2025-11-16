@@ -178,7 +178,7 @@ class HybridBERTExtractor:
         elif re.search(r'\b(\d{2}:\d{2})\b', text):
             result['time'] = re.search(r'\b(\d{2}:\d{2})\b', text).group(1)
         
-        # Сумма (улучшенный алгоритм для МИЛЛИОНОВ, чеков И банковских операций)
+        # Сумма (улучшенный алгоритм для МИЛЛИОНОВ, чеков и банковских операций)
         all_totals = []
         total_patterns = [
             # Чеки с миллионами (1 659 649,00)
@@ -191,20 +191,19 @@ class HybridBERTExtractor:
             # Суммы в формате "150,00 RUB" на отдельной строке
             r'(?:^|\n)\s*((?:\d{1,3}[\s,])*\d+[.,]\d{2})\s*(?:RUB|руб|₽|Р)\s*(?:\n|$)',
             r'((?:\d{1,3}[\s,])+\d{2,}[.,]\d{2})\s*(?:₽|руб|RUB)',
+            # Чеки/квитанции без копеек: "Итого 2 600 ₽" (OCR может давать "i" вместо "₽")
+            r'(?:ИТОГО?|СУММА|ВСЕГО|Итого?|К оплате|Всего к оплате|Сумма заказа)[:\s=]*((?:\d{1,3}[\s]\d{3}|\d{2,6}))\s*(?:₽|руб|RUB|Р|P|i)?',
         ]
         
         for pattern in total_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 value = match.group(1).replace(',', '.').replace(' ', '')
-                if '.' in value:
-                    parts = value.split('.')
-                    if len(parts) == 2 and len(parts[0]) >= 2:
-                        try:
-                            num_val = float(value)
-                            if num_val > 50:
-                                all_totals.append((num_val, value))
-                        except:
-                            pass
+                try:
+                    num_val = float(value)
+                    if num_val > 50:
+                        all_totals.append((num_val, value))
+                except:
+                    pass
         
         if all_totals:
             all_totals.sort(reverse=True)
