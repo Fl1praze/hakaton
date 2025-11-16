@@ -76,65 +76,24 @@ def main():
         print("Если хотите перезагрузить модель, удалите файл и запустите скрипт снова.")
         return
     
-    # Создаём директорию если не существует
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    
+    # если файл не найден — показываем понятную инструкцию и выходим
     print(f"[INFO] Модель не найдена: {MODEL_FILE}")
     print(f"[INFO] Ожидаемый размер: ~{MODEL_SIZE_MB:.2f} MB")
     print()
-    
-    # Выбираем метод загрузки
-    if DIRECT_URL:
-        print("[INFO] Используется прямая ссылка")
-        success = download_from_direct_url(DIRECT_URL, MODEL_FILE)
-    elif GOOGLE_DRIVE_FILE_ID != "YOUR_FILE_ID_HERE":
-        print("[INFO] Используется Google Drive")
-        success = download_from_google_drive(GOOGLE_DRIVE_FILE_ID, MODEL_FILE)
-    else:
-        print()
-        print("=" * 80)
-        print("ОШИБКА: НЕ НАСТРОЕНА ССЫЛКА НА МОДЕЛЬ!")
-        print("=" * 80)
-        print()
-        print("Выберите один из вариантов:")
-        print()
-        print("ВАРИАНТ 1: Google Drive")
-        print("  1. Загрузите model.pt на Google Drive")
-        print("  2. Сделайте файл публично доступным")
-        print("  3. Скопируйте FILE_ID из ссылки")
-        print("  4. Вставьте в переменную GOOGLE_DRIVE_FILE_ID в этом скрипте")
-        print()
-        print("ВАРИАНТ 2: Прямая ссылка")
-        print("  1. Загрузите model.pt на любое облачное хранилище")
-        print("  2. Получите прямую ссылку для скачивания")
-        print("  3. Вставьте в переменную DIRECT_URL в этом скрипте")
-        print()
-        print("ВАРИАНТ 3: Ручная загрузка")
-        print("  1. Скопируйте model.pt вручную на сервер:")
-        print(f"     scp model.pt user@server:{MODEL_FILE.absolute()}")
-        print()
-        sys.exit(1)
-    
-    # Проверяем результат
-    if success and MODEL_FILE.exists():
-        file_size_mb = MODEL_FILE.stat().st_size / 1024 / 1024
-        print()
-        print("=" * 80)
-        print("[OK] МОДЕЛЬ УСПЕШНО ЗАГРУЖЕНА!")
-        print("=" * 80)
-        print(f"Файл: {MODEL_FILE}")
-        print(f"Размер: {file_size_mb:.2f} MB")
-        print()
-        print("Теперь можно запускать API:")
-        print("  uvicorn app.main:app --reload")
-    else:
-        print()
-        print("=" * 80)
-        print("[ERROR] НЕ УДАЛОСЬ ЗАГРУЗИТЬ МОДЕЛЬ!")
-        print("=" * 80)
-        print()
-        print("Попробуйте скопировать model.pt вручную:")
-        print(f"  scp model.pt user@server:{MODEL_FILE.absolute()}")
+    print("=" * 80)
+    print("МОДЕЛЬ НЕ СКАЧАНА")
+    print("=" * 80)
+    print()
+    print("Скачайте файл model.pt вручную по ссылке:")
+    print("  https://drive.google.com/file/d/1JSfkUnS4Y0JlKzh7thPRoEMCIvruP7GE/view")
+    print()
+    print("И сохраните его в папку:")
+    print(f"  {MODEL_FILE}")
+    print()
+    print("После этого снова запустите:")
+    print("  python download_model.py")
+    print()
+    sys.exit(1)
 
 
 if __name__ == "__main__":

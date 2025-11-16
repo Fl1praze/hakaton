@@ -30,13 +30,16 @@
 git clone https://github.com/Fl1praze/hakaton.git
 cd hakaton   # корень проекта
 
+# положить заранее скачанную model.pt в:
+#   app/models/few_shot_classifier/model.pt
+
 docker build -t pdf-api .
 docker run -p 8000:8000 pdf-api
 ```
 
 Внутри контейнера:
 - ставятся зависимости и Tesseract,
-- вызывается `download_model.py` — он скачивает `model.pt` с Google Drive по заранее прописанному `FILE_ID`,
+- вызывается `download_model.py` — он просто проверяет, что `model.pt` лежит в нужной папке,
 - запускается `uvicorn app.main:app` на порту `8000`.
 
 Проверить работу:
@@ -60,7 +63,12 @@ pip install -r requirements.txt
 # Linux:  sudo apt-get install tesseract-ocr tesseract-ocr-rus tesseract-ocr-eng
 # macOS: brew install tesseract tesseract-lang
 
-# один раз скачать ML‑модель (~678 МБ)
+# вручную скачать ML‑модель (~678 МБ) по ссылке:
+#   https://drive.google.com/file/d/1JSfkUnS4Y0JlKzh7thPRoEMCIvruP7GE/view
+# сохранить файл как:
+#   app/models/few_shot_classifier/model.pt
+
+# проверить, что файл на месте и размер не 0 MB
 python download_model.py
 
 # запустить API
