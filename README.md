@@ -28,7 +28,7 @@
 
 ```bash
 git clone https://github.com/Fl1praze/hakaton.git
-cd hakaton
+cd hakaton   # корень проекта
 
 docker build -t pdf-api .
 docker run -p 8000:8000 pdf-api
@@ -43,11 +43,11 @@ docker run -p 8000:8000 pdf-api
 - `http://localhost:8000/health` → статус сервиса,
 - `http://localhost:8000/docs` → Swagger UI со всеми эндпоинтами.
 
-### Вариант 2. Локальный запуск (без Docker)
+### Вариант 2. Локальный запуск API (без Docker)
 
 ```bash
 git clone https://github.com/Fl1praze/hakaton.git
-cd hakaton
+cd hakaton   # корень проекта
 
 python -m venv .venv
 .\.venv\Scripts\activate      # Windows
@@ -66,6 +66,20 @@ python download_model.py
 # запустить API
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+### Локальный запуск Telegram‑бота (без Docker)
+
+```bash
+# в другом терминале, тоже из корня проекта
+cd hakaton/app/bot   # папка с кодом бота
+
+set TELEGRAM_BOT_TOKEN=ВАШ_ТОКЕН_ОТ_BotFather   # Windows
+# export TELEGRAM_BOT_TOKEN=...                  # Linux / macOS
+
+go run ./cmd/bot
+```
+
+Бот будет ходить в локальный API по адресу `http://localhost:8000`.
 
 ---
 
