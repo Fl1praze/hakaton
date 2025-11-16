@@ -85,6 +85,9 @@ cd hakaton/app/bot   # папка с кодом бота
 set TELEGRAM_BOT_TOKEN=ВАШ_ТОКЕН_ОТ_BotFather   # Windows
 # export TELEGRAM_BOT_TOKEN=...                  # Linux / macOS
 
+#если не срабоатет сосздать файл .env в корне проекта с полем
+TELEGRAM_BOT_TOKEN='AAAAAAAAA'
+
 путь hakaton\app\bot\cmd\bot
 go run main.go
 ```
