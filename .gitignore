@@ -39,6 +39,9 @@ ENV/
 .ipynb_checkpoints
 *.ipynb
 
+# allow project demo notebooks
+!app/notebooks/*.ipynb
+
 # Environment variables
 .env
 .env.local
