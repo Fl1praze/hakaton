@@ -228,7 +228,25 @@ hakaton/
 - есть два Jupyter‑ноутбука: обучение и демонстрация пайплайна;
 - есть Docker‑образ, который запускает всё одной командой.
 
-Минимальный сценарий проверки:
+### Как пользоваться Jupyter‑ноутбуками
+
+```bash
+git clone https://github.com/Fl1praze/hakaton.git
+cd hakaton
+
+python -m venv .venv
+.\.venv\Scripts\activate        # Windows
+
+pip install -r requirements.txt
+python download_model.py        # скачивает model.pt, если нужно
+
+jupyter notebook app/notebooks
+```
+
+- `training_model.ipynb` — пример обучения few‑shot модели (20 эпох) и сохранение `model.pt`;
+- `demo_pipeline.ipynb` — пример полного пайплайна: PDF → текст → Hybrid BERT + regex → JSON.
+
+Минимальный сценарий проверки API:
 
 ```bash
 git clone https://github.com/Fl1praze/hakaton.git
